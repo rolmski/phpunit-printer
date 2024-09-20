@@ -17,7 +17,6 @@ class TestPreparationStartedSubscriber implements PreparationStartedSubscriber
     public function notify(PreparationStarted $event): void
     {
         $this->context->markTestStarted(
-            $event->test()->file(),
             $this->getClassNameFromId($event->test()->id()),
             $event->test()->name(),
         );

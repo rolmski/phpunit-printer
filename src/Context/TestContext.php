@@ -19,7 +19,7 @@ class TestContext
      */
     protected array $testClasses = [];
 
-    protected ?string $currentTestFile = null;
+    protected ?string $currentTestClass = null;
     protected ?string $currentTestMethod = null;
 
 
@@ -36,17 +36,15 @@ class TestContext
         $this->totalTests = $total;
     }
 
-    public function markTestStarted(string $file, string $className, string $method): void
+    public function markTestStarted(string $className, string $method): void
     {
         $this->incrementTestNumber();
 
-        $cleanFileName = $this->afterString($file, $this->basePath);
-
         $this->currentTestMethod = $method;
 
-        $this->handleFirstTestForClass($cleanFileName, $className);
+        $this->handleFirstTestForClass($className);
 
-        $this->testClasses[$cleanFileName]->tests[$method] = new TestInformation(
+        $this->testClasses[$className]->tests[$method] = new TestInformation(
             $method,
             $this->currentTestNumber,
             TestStatus::RUNNING
@@ -126,19 +124,19 @@ class TestContext
     }
 
 
-    protected function handleFirstTestForClass(string $cleanFileName, string $className): void
+    protected function handleFirstTestForClass(string $className): void
     {
-        if (array_key_exists($cleanFileName, $this->testClasses)) {
+        if (array_key_exists($className, $this->testClasses)) {
             return;
         }
 
-        $this->currentTestFile = $cleanFileName;
+        $this->currentTestClass = $className;
 
-        $this->testClasses[$cleanFileName] = new TestClassInformation($cleanFileName, $className);
+        $this->testClasses[$className] = new TestClassInformation($className);
 
         $this->printer->line(
             $this->formatter->testClassStart(
-                $this->testClasses[ $cleanFileName ],
+                $this->testClasses[$className],
                 $this->currentTestNumber,
                 $this->totalTests
             )
@@ -147,20 +145,11 @@ class TestContext
 
     protected function currentTestInformation(): TestInformation
     {
-        return $this->testClasses[$this->currentTestFile]->tests[$this->currentTestMethod];
+        return $this->testClasses[$this->currentTestClass]->tests[$this->currentTestMethod];
     }
 
     protected function incrementTestNumber(): void
     {
         $this->currentTestNumber++;
-    }
-
-    protected function afterString(string $haystack, string $needle): string
-    {
-        if (! str_starts_with($haystack, $needle)) {
-            return $haystack;
-        }
-
-        return substr($haystack, strlen($needle));
     }
 }
